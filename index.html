@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title id="title"></title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="assets/icon.svg">
+  <meta name="viewport" content="width=900px">
+</head>
+<body>
+  <h1 id="name">Запуск Книги-Игры</h1>
+  <div id="initial">
+    <input id="file" type="file" onchange="read(this.files[0])">
+    <label id="label" for="file">Выберите файл</label>
+    <div id="logo">
+      <img src="assets/logo.svg" width="200">
+    </div>
+  </div>
+  <p id="text"></p>
+  <div id="options"></div>
+</body>
+</html>
+<script src="script.js"></script>
