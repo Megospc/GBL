@@ -1,7 +1,7 @@
-//Вирсия: 1.0.0
+//Вирсия: 1.2.0
 
 const GBL = {
-  version: 1
+  version: 2
 };
 
 const variables = {};
@@ -18,7 +18,7 @@ function parse(str) {
   for (let i = 0; i < arr.length; i++) {
     const l = arr[i];
     
-    if (l.match(/^#/)) {
+    if (!room && l.match(/^#/)) {
       const n = l.match(/^# (.*)/);
       const v = l.match(/^#v (.*)/);
       const a = l.match(/^#a (.*)/);
@@ -57,17 +57,20 @@ function parse(str) {
       };
       
       rooms[n] = room;
-    } else if (l.match(/^\* (.*): (.*)/)) {
+    } else if (room && l.match(/^\* (.*): (.*)/)) {
       const o = l.match(/^\* (.*): (.*)/);
       
       room.options.push({
         text: o[1],
         room: o[2]
-      })
+      });
+    } else if (room && l.match(/^\$\$\$\$\$/)) {
+      room = null;
     } else if (room && l.length && !l.match(/^\/\/.*/)) room.text += l+"\n";
   }
   
   info.first ??= Object.keys(rooms)[0];
+  info.music ??= "default";
   
   return {
     info,
@@ -77,13 +80,25 @@ function parse(str) {
 }
 
 function parsestr(arg, text) {
-  return text.replace(/{(.*?)}/g, (m, c) => eval(c));
+  return text.replace(/{(.*?)}/g, (m, c) => {
+    try {
+      return eval(c);
+    } catch (e) {
+      error(`Ошибка: не удалось выполнить код ${c} (${e.message})`);
+      return "{Ошибка}";
+    }
+  });
 }
 
 function parseargs(text) {
   const m = text.match(/\((.*)\)/);
   
-  return m ? JSON.parse("["+m[1]+"]"):[];
+  try {
+    return m ? JSON.parse("["+m[1]+"]"):[];
+  } catch (e) {
+    error(`Ошибка: не удалось прочитать параметры "${m[1]}"`);
+    return [];
+  }
 }
 
 function parseopt(arg, room) {
@@ -102,9 +117,16 @@ const name = document.getElementById('name');
 const text = document.getElementById('text');
 const options = document.getElementById('options');
 const title = document.getElementById('title');
+const errorp = document.getElementById('error');
+const buttons = document.getElementById('buttons');
+const reloadbtn = document.getElementById('reload');
 const initial = document.getElementById('initial');
 
-var obj;
+var obj, roomid, code, stats;
+
+function error(e) {
+  if (!errorp.innerHTML) errorp.innerHTML = e;
+}
 
 function read(file) {
   const r = new FileReader();
@@ -112,33 +134,64 @@ function read(file) {
   r.readAsText(file);
   
   r.onload = function() {
-    start(r.result);
+    code = r.result;
+    
+    start();
   };
 }
 
-function start(text) {
+function start(start = true) {
   initial.style.display = "none";
+  buttons.style.display = "block";
   
-  obj = parse(text);
+  obj = parse(code);
+  
+  stats = {
+    rooms: Object.keys(obj.rooms).length
+  };
   
   name.innerHTML = obj.info.name;
   title.innerHTML = obj.info.name;
   
-  const music = new Audio("assets/"+(obj.info.music ?? "default")+".mp3");
+  const musics = [
+    "battle",
+    "battle2",
+    "default",
+    "desert",
+    "electric",
+    "fast",
+    "slow"
+  ];
   
-  music.addEventListener("loadeddata", () => music.play());
+  if (obj.info.music != "off") {
+    const music = new Audio(musics.includes(obj.info.music) ? "assets/"+obj.info.music+".mp3":obj.info.music);
+    
+    music.addEventListener("loadeddata", () => music.play());
+  }
   
-  eval(obj.javascript);
+  try {
+    eval(obj.javascript);
+  } catch (e) {
+    error(`Ошибка: не удалось выполнить код (${e.message})`)
+  }
   
-  toroom(obj.info.first, parseargs(obj.info.args ?? "()"));
+  if (start) toroom(obj.info.first, parseargs(obj.info.args ?? "()"));
 }
 
 function toroom(id, arg) {
   const room = obj.rooms[id];
   
+  if (!room) return void error(`Ошибка: комната «${id}» не существует`);
+  
+  roomid = id;
+  
   text.innerHTML = parsestr(arg, room.text);
   
-  eval(room.javascript);
+  try {
+    eval(room.javascript);
+  } catch (e) {
+    error(`Ошибка: не удалось выполнить код комнаты «${id}» (${e.message})`)
+  }
   
   options.innerHTML = "";
   
@@ -162,3 +215,34 @@ function toroom(id, arg) {
     options.appendChild(div);
   }
 }
+
+function save() {
+  const o = {
+    roomid,
+    variables,
+    code
+  };
+  
+  localStorage.setItem("gbl_save", JSON.stringify(o));
+}
+
+function reload() {
+  try {
+    const o = JSON.parse(localStorage.getItem("gbl_save"));
+    
+    code = o.code;
+    
+    const keys = Object.keys(o.variables);
+    const vals = Object.values(o.variables);
+    
+    for (let i = 0; i < keys.length; i++) variables[keys[i]] = vals[i];
+    
+    start();
+    
+    toroom(o.roomid);
+  } catch (e) {
+    error(`Ошибка: не удалось открыть сохранение (${e.message})`);
+  }
+}
+
+if (localStorage.getItem("gbl_save")) reloadbtn.style.display = "block";

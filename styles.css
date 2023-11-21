@@ -5,13 +5,17 @@
 p, h1, button, label {
   font-family: pixel-font;
 }
-p, h1 {
+.text, h1 {
   color: #ffc070;
 }
-label {
+#label {
   color: #ff8050;
+  margin-left: 5px;
 }
-p, button, label {
+#error {
+  color: #ff5050;
+}
+button, .text {
   font-size: 24px;
 }
 body {
@@ -20,14 +24,25 @@ body {
 .optiondiv {
   margin-bottom: 10px;
 }
-.optionbtn {
+.optionbtn, #reload {
   background-color: transparent;
   border: none;
   color: #ff8050;
+}
+#reload {
+  margin-top: 20px;
 }
 #file {
   display: none;
 }
 #logo {
   margin-top: 20px;
+}
+.button {
+  font-size: 16px;
+  margin-left: 10px;
+  color: #ffa080;
+}
+#buttons {
+  display: none;
 }

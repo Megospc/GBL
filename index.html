@@ -9,15 +9,20 @@
 </head>
 <body>
   <h1 id="name">Запуск Книги-Игры</h1>
+  <div id="buttons">
+    <p class="button" onclick="save()">Сохранить</p>
+  </div>
   <div id="initial">
     <input id="file" type="file" onchange="read(this.files[0])">
-    <label id="label" for="file">Выберите файл</label>
+    <label id="label" class="text" for="file">Выберите файл</label>
+    <button id="reload" onclick="reload()">Открыть сохранение</button>
     <div id="logo">
       <img src="assets/logo.svg" width="200">
     </div>
   </div>
-  <p id="text"></p>
-  <div id="options"></div>
+  <p id="text" class="text"></p>
+  <div id="options" class="text"></div>
+  <p id="error" class="text"></p>
 </body>
 </html>
 <script src="script.js"></script>
