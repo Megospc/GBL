@@ -8,21 +8,31 @@
   <meta name="viewport" content="width=900px">
 </head>
 <body>
-  <h1 id="name">Запуск Книги-Игры</h1>
-  <div id="buttons">
-    <p class="button" onclick="save()">Сохранить</p>
-  </div>
+  <h1 class="header" id="name">Запуск Книги-Игры</h1>
   <div id="initial">
-    <input id="file" type="file" onchange="read(this.files[0])">
-    <label id="label" class="text" for="file">Выберите файл</label>
-    <button id="reload" onclick="reload()">Открыть сохранение</button>
-    <div id="logo">
+    <div>
+      <input id="file" type="file" onchange="read(this.files[0])">
+      <label class="initial" for="file">Выберите файл</label>
+    </div>
+    <div>
+      <p class="initial" id="reload" onclick="reload()">Открыть сохранение</p>
+    </div>
+    <div id="logodiv">
       <img src="assets/logo.svg" width="200">
     </div>
+    <div id="aboutdiv">
+      <a class="initial" href="about.html">О программе</a>
+    </div>
   </div>
-  <p id="text" class="text"></p>
-  <div id="options" class="text"></div>
-  <p id="error" class="text"></p>
+  <div id="game">
+    <div id="buttons">
+      <p class="button" onclick="save()">Сохранить</p>
+    </div>
+    <p class="text" id="state"></p>
+    <p class="text" id="text"></p>
+    <div id="options"></div>
+    <p id="error"></p>
+  </div>
 </body>
 </html>
 <script src="script.js"></script>

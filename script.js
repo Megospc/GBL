@@ -1,7 +1,8 @@
-//Вирсия: 1.2.0
+//Версия: 1.3.3 (23.11.2023)
 
 const GBL = {
-  version: 2
+  version: 3,
+  savekey: "gbl3save"
 };
 
 const variables = {};
@@ -25,7 +26,6 @@ function parse(str) {
       const r = l.match(/^#r (.*)/);
       const i = l.match(/^#i (.*)/);
       const f = l.match(/^#f (.*)/);
-      const p = l.match(/^#p (.*)/);
       const c = l.match(/^#c (.*)/);
       const m = l.match(/^#m (.*)/);
       
@@ -35,7 +35,6 @@ function parse(str) {
       if (r) info.released = r[1];
       if (i) info.idea = i[1];
       if (f) info.first = f[1];
-      if (p) info.args = p[1];
       if (m) info.music = m[1];
       if (c) {
         if (!info.credits) info.credits = [];
@@ -101,7 +100,7 @@ function parseargs(text) {
   }
 }
 
-function parseopt(arg, room) {
+function parseopt(room) {
   const m = room.match(/(.*) (\(.*\))/);
   
   return m ? {
@@ -118,11 +117,17 @@ const text = document.getElementById('text');
 const options = document.getElementById('options');
 const title = document.getElementById('title');
 const errorp = document.getElementById('error');
-const buttons = document.getElementById('buttons');
 const reloadbtn = document.getElementById('reload');
 const initial = document.getElementById('initial');
+const game = document.getElementById('game');
+const statep = document.getElementById('state');
 
 var obj, roomid, code, stats;
+
+function state(str) {
+  if (typeof str == "undefined") return statep.innerHTML;
+  else statep.innerHTML = str;
+}
 
 function error(e) {
   if (!errorp.innerHTML) errorp.innerHTML = e;
@@ -142,7 +147,7 @@ function read(file) {
 
 function start(start = true) {
   initial.style.display = "none";
-  buttons.style.display = "block";
+  game.style.display = "block";
   
   obj = parse(code);
   
@@ -158,13 +163,18 @@ function start(start = true) {
     "battle2",
     "default",
     "desert",
-    "electric",
+    "maze",
     "fast",
-    "slow"
+    "slow",
+    "fun",
+    "fun2",
+    "fun3"
   ];
   
   if (obj.info.music != "off") {
     const music = new Audio(musics.includes(obj.info.music) ? "assets/"+obj.info.music+".mp3":obj.info.music);
+    
+    music.loop = true;
     
     music.addEventListener("loadeddata", () => music.play());
   }
@@ -172,10 +182,13 @@ function start(start = true) {
   try {
     eval(obj.javascript);
   } catch (e) {
-    error(`Ошибка: не удалось выполнить код (${e.message})`)
+    error(`Ошибка: не удалось выполнить код (${e.message})`);
   }
   
-  if (start) toroom(obj.info.first, parseargs(obj.info.args ?? "()"));
+  if (start) {
+    const opt = parseopt(obj.info.first);
+    toroom(opt.room, opt.args);
+  }
 }
 
 function toroom(id, arg) {
@@ -190,7 +203,7 @@ function toroom(id, arg) {
   try {
     eval(room.javascript);
   } catch (e) {
-    error(`Ошибка: не удалось выполнить код комнаты «${id}» (${e.message})`)
+    error(`Ошибка: не удалось выполнить код комнаты «${id}» (${e.message})`);
   }
   
   options.innerHTML = "";
@@ -206,7 +219,7 @@ function toroom(id, arg) {
     btn.innerHTML = parsestr(arg, o.text);
     
     btn.onclick = function() {
-      const r = parseopt(arg, parsestr(arg, o.room));
+      const r = parseopt(parsestr(arg, o.room));
       
       toroom(r.room, r.args);
     };
@@ -223,12 +236,12 @@ function save() {
     code
   };
   
-  localStorage.setItem("gbl_save", JSON.stringify(o));
+  localStorage.setItem(GBL.savekey, JSON.stringify(o));
 }
 
 function reload() {
   try {
-    const o = JSON.parse(localStorage.getItem("gbl_save"));
+    const o = JSON.parse(localStorage.getItem(GBL.savekey));
     
     code = o.code;
     
@@ -245,4 +258,4 @@ function reload() {
   }
 }
 
-if (localStorage.getItem("gbl_save")) reloadbtn.style.display = "block";
+if (localStorage.getItem(GBL.savekey)) reloadbtn.style.display = "block";

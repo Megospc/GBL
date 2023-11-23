@@ -2,47 +2,77 @@
   font-family: pixel-font;
   src: url('assets/font.ttf');
 }
-p, h1, button, label {
-  font-family: pixel-font;
-}
-.text, h1 {
-  color: #ffc070;
-}
-#label {
-  color: #ff8050;
-  margin-left: 5px;
-}
-#error {
-  color: #ff5050;
-}
-button, .text {
-  font-size: 24px;
-}
 body {
   background-color: #803000;
 }
-.optiondiv {
-  margin-bottom: 10px;
+p, h1, button, label, a {
+  font-family: pixel-font;
 }
-.optionbtn, #reload {
+a {
+  text-decoration: none;
+}
+.text, .header, .fact {
+  color: #ffc070;
+}
+.text, .fact, .initial {
+  font-size: 24px;
+}
+.fact {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: 5px;
+  margin-left: 5px;
+}
+.initial {
+  color: #ff8050;
+  margin-bottom: 5px;
+  margin-top: 5px;
+  margin-left: 5px;
+}
+.optionbtn {
+  font-size: 24px;
   background-color: transparent;
   border: none;
   color: #ff8050;
 }
-#reload {
-  margin-top: 20px;
-}
-#file {
-  display: none;
-}
-#logo {
-  margin-top: 20px;
+.optiondiv {
+  margin-bottom: 10px;
 }
 .button {
   font-size: 16px;
   margin-left: 10px;
   color: #ffa080;
 }
+#error {
+  color: #ff5050;
+}
+#reload {
+  margin-top: 20px;
+  display: none;
+}
+#file {
+  display: none;
+}
+#logodiv {
+  margin-top: 20px;
+}
+#aboutdiv {
+  margin-top: 10px;
+}
+#text {
+  margin-left: 5px;
+  margin-top: 5px;
+  margin-right: 10px;
+}
 #buttons {
+  margin-bottom: 5px;
+}
+#state {
+  margin-top: 5px;
+  margin-right: 10%;
+  margin-bottom: 5px;
+  text-align: right;
+}
+#game {
   display: none;
 }
