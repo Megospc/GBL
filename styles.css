@@ -43,8 +43,14 @@ a {
   margin-left: 10px;
   color: #ffa080;
 }
+.stateimg {
+  height: 1em;
+  margin-left: 0.5em;
+}
 #error {
   color: #ff5050;
+  font-size: 18px;
+  margin-left: 5px;
 }
 #reload {
   margin-top: 20px;
@@ -68,7 +74,7 @@ a {
   margin-bottom: 5px;
 }
 #state {
-  margin-top: 5px;
+  margin-top: 0px;
   margin-right: 10%;
   margin-bottom: 5px;
   text-align: right;

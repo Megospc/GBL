@@ -1,11 +1,12 @@
-//Версия: 1.3.3 (23.11.2023)
+//Версия: 1.4.1 (24.11.2023)
 
 const GBL = {
-  version: 3,
-  savekey: "gbl3save"
+  version: 4,
+  savekey: "gbl4save"
 };
 
 const variables = {};
+const assets = {};
 
 function parse(str) {
   const arr = str.split("\n");
@@ -124,6 +125,30 @@ const statep = document.getElementById('state');
 
 var obj, roomid, code, stats;
 
+function pixelsrc(colors, data, size) {
+  const h = data.length;
+  const w = Math.max(...data.map(x => x.length));
+  
+  const c = document.createElement("canvas");
+  const ctx = c.getContext("2d");
+  
+  c.width = w*size;
+  c.height = h*size;
+  
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    ctx.fillStyle = colors[data[y][x] ?? 0];
+    ctx.fillRect(x*size, y*size, size, size);
+  }
+  
+  return c.toDataURL("image/png");
+}
+
+function pixelhtml() {
+  const src = pixelsrc(...arguments);
+  
+  return `<img src="${src}" class="stateimg">`;
+}
+
 function state(str) {
   if (typeof str == "undefined") return statep.innerHTML;
   else statep.innerHTML = str;
@@ -233,7 +258,8 @@ function save() {
   const o = {
     roomid,
     variables,
-    code
+    code,
+    state: state()
   };
   
   localStorage.setItem(GBL.savekey, JSON.stringify(o));
@@ -250,8 +276,9 @@ function reload() {
     
     for (let i = 0; i < keys.length; i++) variables[keys[i]] = vals[i];
     
-    start();
+    start(false);
     
+    state(o.state);
     toroom(o.roomid);
   } catch (e) {
     error(`Ошибка: не удалось открыть сохранение (${e.message})`);
