@@ -1,8 +1,8 @@
-//Версия: 1.4.1 (24.11.2023)
+//Версия: 1.5.5 (25.11.2023)
 
 const GBL = {
-  version: 4,
-  savekey: "gbl4save"
+  version: 5,
+  savekey: "gbl5save"
 };
 
 const variables = {};
@@ -123,7 +123,9 @@ const initial = document.getElementById('initial');
 const game = document.getElementById('game');
 const statep = document.getElementById('state');
 
-var obj, roomid, code, stats;
+var obj, code;
+var stats, music;
+var roomid, roomarg;
 
 function pixelsrc(colors, data, size) {
   const h = data.length;
@@ -170,6 +172,39 @@ function read(file) {
   };
 }
 
+function sound(src) {
+  const sound = new Audio(src);
+  
+  let loaded = false;
+  
+  sound.addEventListener("loadeddata", () => loaded = true);
+  
+  return {
+    play(mv = 1) {
+      return new Promise(function(res) {
+        const lmv = music.volume;
+        
+        if (loaded) {
+          music.volume *= mv;
+          
+          const smv = music.volume;
+          
+          sound.addEventListener("ended", function() {
+            if (music.volume == smv) music.volume = lmv;
+            res();
+          }, { once: true });
+          
+          sound.play();
+        }
+      });
+    },
+    
+    set volume(v) {
+      sound.volume = v;
+    }
+  };
+}
+
 function start(start = true) {
   initial.style.display = "none";
   game.style.display = "block";
@@ -197,7 +232,7 @@ function start(start = true) {
   ];
   
   if (obj.info.music != "off") {
-    const music = new Audio(musics.includes(obj.info.music) ? "assets/"+obj.info.music+".mp3":obj.info.music);
+    music = new Audio(musics.includes(obj.info.music) ? "assets/"+obj.info.music+".mp3":obj.info.music);
     
     music.loop = true;
     
@@ -222,6 +257,7 @@ function toroom(id, arg) {
   if (!room) return void error(`Ошибка: комната «${id}» не существует`);
   
   roomid = id;
+  roomarg = arg;
   
   text.innerHTML = parsestr(arg, room.text);
   
@@ -257,6 +293,7 @@ function toroom(id, arg) {
 function save() {
   const o = {
     roomid,
+    roomarg,
     variables,
     code,
     state: state()
@@ -279,7 +316,7 @@ function reload() {
     start(false);
     
     state(o.state);
-    toroom(o.roomid);
+    toroom(o.roomid, o.roomarg);
   } catch (e) {
     error(`Ошибка: не удалось открыть сохранение (${e.message})`);
   }
