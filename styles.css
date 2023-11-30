@@ -42,6 +42,7 @@ a {
   font-size: 16px;
   margin-left: 10px;
   color: #ffa080;
+  display: inline;
 }
 .stateimg {
   height: 1em;

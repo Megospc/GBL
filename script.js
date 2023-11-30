@@ -1,8 +1,8 @@
-//Версия: 1.5.5 (25.11.2023)
+//Версия: 1.6.0 (30.11.2023)
 
 const GBL = {
-  version: 5,
-  savekey: "gbl5save"
+  version: 6,
+  savekey: "gbl6save"
 };
 
 const variables = {};
@@ -106,10 +106,12 @@ function parseopt(room) {
   
   return m ? {
     room: m[1],
-    args: parseargs(m[2])
+    args: parseargs(m[2]),
+    argstr: m[2]
   }:{
     room,
-    args: []
+    args: [],
+    argstr: ""
   };
 }
 
@@ -125,7 +127,11 @@ const statep = document.getElementById('state');
 
 var obj, code;
 var stats, music;
-var roomid, roomarg;
+var roomid, roomarg, roomargstr;
+
+function chance(prob) {
+  return Math.random() < prob;
+}
 
 function pixelsrc(colors, data, size) {
   const h = data.length;
@@ -199,10 +205,36 @@ function sound(src) {
       });
     },
     
+    get elememt() {
+      return sound;
+    },
+    get src() {
+      return src;
+    },
+    get size() {
+      return src.length;
+    },
     set volume(v) {
       sound.volume = v;
+    },
+    get volume() {
+      return sound.volume;
     }
   };
+}
+
+function addbutton(html, f) {
+  const btn = document.createElement("p");
+  
+  btn.className = "button";
+  btn.innerHTML = html;
+  btn.onclick = f;
+  
+  buttons.appendChild(btn);
+}
+
+function println(txt) {
+  text.innerHTML += txt;
 }
 
 function start(start = true) {
@@ -259,7 +291,9 @@ function toroom(id, arg) {
   roomid = id;
   roomarg = arg;
   
-  text.innerHTML = parsestr(arg, room.text);
+  const rtext = parsestr(arg, room.text);
+  
+  text.innerHTML = rtext;
   
   try {
     eval(room.javascript);
@@ -281,6 +315,8 @@ function toroom(id, arg) {
     
     btn.onclick = function() {
       const r = parseopt(parsestr(arg, o.room));
+      
+      roomargstr = r.argstr;
       
       toroom(r.room, r.args);
     };
