@@ -5,7 +5,7 @@
 body {
   background-color: #803000;
 }
-p, h1, button, label, a {
+p, h1, button, label, a, input {
   font-family: pixel-font;
 }
 a {
@@ -69,6 +69,7 @@ a {
 #text {
   margin-left: 5px;
   margin-top: 5px;
+  margin-bottom: 5px;
   margin-right: 10px;
 }
 #buttons {
@@ -82,4 +83,22 @@ a {
 }
 #game {
   display: none;
+}
+#enterdiv {
+  margin-left: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  display: none;
+}
+#enter {
+  outline: none;
+  color: #ff8050;
+  background-color: transparent;
+  border: none;
+  font-size: 24px;
+  width: 50%;
+  display: inline;
+}
+#enterlabel {
+  display: inline;
 }

@@ -1,8 +1,8 @@
-//Версия: 1.6.0 (30.11.2023)
+//Версия: 1.7.2 (07.12.2023)
 
 const GBL = {
-  version: 6,
-  savekey: "gbl6save"
+  version: 7,
+  savekey: "gbl7save"
 };
 
 const variables = {};
@@ -66,6 +66,10 @@ function parse(str) {
       });
     } else if (room && l.match(/^\$\$\$\$\$/)) {
       room = null;
+    } else if (room && l.match(/^\"\"\" (.*)/)) {
+      const t = l.match(/^\"\"\" (.*)/);
+      
+      room.text += t[1].replace(/([\{|\}])/g, (x, f) => `{"${f == "}" ? "\\u007C":"\\u007B"}"}`);
     } else if (room && l.length && !l.match(/^\/\/.*/)) room.text += l+"\n";
   }
   
@@ -111,7 +115,7 @@ function parseopt(room) {
   }:{
     room,
     args: [],
-    argstr: ""
+    argstr: "()"
   };
 }
 
@@ -124,6 +128,9 @@ const reloadbtn = document.getElementById('reload');
 const initial = document.getElementById('initial');
 const game = document.getElementById('game');
 const statep = document.getElementById('state');
+const enterdiv = document.getElementById('enterdiv');
+const enterinput = document.getElementById('enter');
+const enterlabel = document.getElementById('enterlabel');
 
 var obj, code;
 var stats, music;
@@ -133,6 +140,19 @@ function chance(prob) {
   return Math.random() < prob;
 }
 
+function entertext(callback, label = "", once = true) {
+  enterinput.onchange = function() {
+    if (once) enterdiv.style.display = "none";
+    callback(enterinput.value);
+  };
+  
+  enterlabel.innerHTML = label;
+  enterdiv.style.display = "block";
+}
+
+function imagehtml(src) {
+  return `<img src="${src}" class="stateimg">`;
+}
 function pixelsrc(colors, data, size) {
   const h = data.length;
   const w = Math.max(...data.map(x => x.length));
@@ -154,7 +174,7 @@ function pixelsrc(colors, data, size) {
 function pixelhtml() {
   const src = pixelsrc(...arguments);
   
-  return `<img src="${src}" class="stateimg">`;
+  return imagehtml(src);
 }
 
 function state(str) {
@@ -188,15 +208,15 @@ function sound(src) {
   return {
     play(mv = 1) {
       return new Promise(function(res) {
-        const lmv = music.volume;
-        
         if (loaded) {
+          const lmv = music.volume;
+          
           music.volume *= mv;
           
-          const smv = music.volume;
-          
           sound.addEventListener("ended", function() {
-            if (music.volume == smv) music.volume = lmv;
+            if (mv) music.volume /= mv;
+            else music.volume = lmv;
+            
             res();
           }, { once: true });
           
@@ -234,7 +254,30 @@ function addbutton(html, f) {
 }
 
 function println(txt) {
-  text.innerHTML += txt;
+  text.innerHTML += parsestr(roomarg, txt);
+}
+
+function addoption(text, room) {
+  const arg = roomarg;
+  
+  const div = document.createElement("div");
+  const btn = document.createElement("button");
+  
+  div.className = "optiondiv";
+  btn.className = "optionbtn";
+  
+  btn.innerHTML = parsestr(arg, text);
+  
+  btn.onclick = function() {
+    const r = parseopt(parsestr(arg, room));
+    
+    roomargstr = r.argstr;
+    
+    toroom(r.room, r.args);
+  };
+  
+  div.appendChild(btn);
+  options.appendChild(div);
 }
 
 function start(start = true) {
@@ -244,7 +287,12 @@ function start(start = true) {
   obj = parse(code);
   
   stats = {
-    rooms: Object.keys(obj.rooms).length
+    get rooms() {
+      return Object.keys(obj.rooms).length;
+    },
+    get assets() {
+      return Object.keys(assets).length;
+    }
   };
   
   name.innerHTML = obj.info.name;
@@ -269,7 +317,7 @@ function start(start = true) {
     music.loop = true;
     
     music.addEventListener("loadeddata", () => music.play());
-  }
+  } else music = {};
   
   try {
     eval(obj.javascript);
@@ -279,6 +327,9 @@ function start(start = true) {
   
   if (start) {
     const opt = parseopt(obj.info.first);
+    
+    roomargstr = opt.argstr;
+    
     toroom(opt.room, opt.args);
   }
 }
@@ -305,24 +356,8 @@ function toroom(id, arg) {
   
   for (let i = 0; i < room.options.length; i++) {
     const o = room.options[i];
-    const div = document.createElement("div");
-    const btn = document.createElement("button");
     
-    div.className = "optiondiv";
-    btn.className = "optionbtn";
-    
-    btn.innerHTML = parsestr(arg, o.text);
-    
-    btn.onclick = function() {
-      const r = parseopt(parsestr(arg, o.room));
-      
-      roomargstr = r.argstr;
-      
-      toroom(r.room, r.args);
-    };
-    
-    div.appendChild(btn);
-    options.appendChild(div);
+    addoption(o.text, o.room);
   }
 }
 
