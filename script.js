@@ -1,8 +1,8 @@
-//Версия: 1.7.2 (07.12.2023)
+//Версия: 1.8.3 (14.12.2023)
 
 const GBL = {
-  version: 7,
-  savekey: "gbl7save"
+  version: 8,
+  savekey: "gbl8save"
 };
 
 const variables = {};
@@ -29,6 +29,7 @@ function parse(str) {
       const f = l.match(/^#f (.*)/);
       const c = l.match(/^#c (.*)/);
       const m = l.match(/^#m (.*)/);
+      const o = l.match(/^#o (.*)/);
       
       if (n) info.name = n[1];
       if (v) info.version = v[1];
@@ -37,6 +38,7 @@ function parse(str) {
       if (i) info.idea = i[1];
       if (f) info.first = f[1];
       if (m) info.music = m[1];
+      if (o) info.options = o[1];
       if (c) {
         if (!info.credits) info.credits = [];
         info.credits.push(c[1]);
@@ -44,7 +46,7 @@ function parse(str) {
     } else if (l.match(/^! (.*)/)) {
       const s = l.match(/^! (.*)/)[1]+"\n";
       
-      if (room) room.javascript += s
+      if (room) room.javascript += s;
       else javascript += s;
     } else if (l.match(/^@ (.*)/)) {
       const n = l.match(/^@ (.*)/)[1];
@@ -131,22 +133,25 @@ const statep = document.getElementById('state');
 const enterdiv = document.getElementById('enterdiv');
 const enterinput = document.getElementById('enter');
 const enterlabel = document.getElementById('enterlabel');
+const soundbutton = document.getElementById('soundbutton');
 
+var roomid, roomarg, roomargstr, roomtxtoptions;
 var obj, code;
 var stats, music;
-var roomid, roomarg, roomargstr;
+var musicon = true;
 
 function chance(prob) {
   return Math.random() < prob;
 }
 
-function entertext(callback, label = "", once = true) {
+function entertext(callback, label = "") {
   enterinput.onchange = function() {
-    if (once) enterdiv.style.display = "none";
-    callback(enterinput.value);
+    const r = callback(enterinput.value);
+    if (!r) enterdiv.style.display = "none";
   };
   
   enterlabel.innerHTML = label;
+  enterinput.value = "";
   enterdiv.style.display = "block";
 }
 
@@ -208,7 +213,8 @@ function sound(src) {
   return {
     play(mv = 1) {
       return new Promise(function(res) {
-        if (loaded) {
+        if (!musicon) res();
+        else if (loaded) {
           const lmv = music.volume;
           
           music.volume *= mv;
@@ -243,6 +249,17 @@ function sound(src) {
   };
 }
 
+function togglesounds() {
+  musicon = !musicon;
+  
+  soundbutton.innerHTML = musicon ? `<img src="assets/musicon.svg" class="soundimg">`:`<img src="assets/musicoff.svg" class="soundimg">`;
+  
+  if (music) {
+    if (musicon) music.play();
+    else music.pause();
+  }
+}
+
 function addbutton(html, f) {
   const btn = document.createElement("p");
   
@@ -260,24 +277,41 @@ function println(txt) {
 function addoption(text, room) {
   const arg = roomarg;
   
-  const div = document.createElement("div");
-  const btn = document.createElement("button");
-  
-  div.className = "optiondiv";
-  btn.className = "optionbtn";
-  
-  btn.innerHTML = parsestr(arg, text);
-  
-  btn.onclick = function() {
-    const r = parseopt(parsestr(arg, room));
+  switch (obj.info.options) {
+    case "entertext":
+      roomtxtoptions.push({
+        id: parsestr(arg, text), 
+        handle() {
+          const r = parseopt(parsestr(arg, room));
+          
+          roomargstr = r.argstr;
+          
+          toroom(r.room, r.args);
+        }
+      });
+      
+      break;
     
-    roomargstr = r.argstr;
-    
-    toroom(r.room, r.args);
-  };
-  
-  div.appendChild(btn);
-  options.appendChild(div);
+    default:
+      const div = document.createElement("div");
+      const btn = document.createElement("button");
+      
+      div.className = "optiondiv";
+      btn.className = "optionbtn";
+      
+      btn.innerHTML = parsestr(arg, text);
+      
+      btn.onclick = function() {
+        const r = parseopt(parsestr(arg, room));
+        
+        roomargstr = r.argstr;
+        
+        toroom(r.room, r.args);
+      };
+       
+      div.appendChild(btn);
+      options.appendChild(div);
+  }
 }
 
 function start(start = true) {
@@ -341,6 +375,7 @@ function toroom(id, arg) {
   
   roomid = id;
   roomarg = arg;
+  roomtxtoptions = [];
   
   const rtext = parsestr(arg, room.text);
   
@@ -353,6 +388,15 @@ function toroom(id, arg) {
   }
   
   options.innerHTML = "";
+  
+  if (obj.info.options == "entertext") {
+    entertext(function(r) {
+      const o = roomtxtoptions.find(x => x.id.toLowerCase() == r.toLowerCase());
+      
+      if (o) setTimeout(() => o.handle());
+      else return true;
+    });
+  }
   
   for (let i = 0; i < room.options.length; i++) {
     const o = room.options[i];

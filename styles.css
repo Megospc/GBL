@@ -48,6 +48,9 @@ a {
   height: 1em;
   margin-left: 0.5em;
 }
+.soundimg {
+  height: 1em;
+}
 #error {
   color: #ff5050;
   font-size: 18px;
